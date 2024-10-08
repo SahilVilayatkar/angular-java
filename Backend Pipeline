@@ -1,0 +1,35 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'develop', credentialsId: 'git-credentials-details', url: 'https://github.com/SahilVilayatkar/angular-java.git'
+            }
+        }
+        stage('Build') {
+            steps {
+                sh '''
+                sudo yum install docker -y
+                sudo systemctl enable docker
+                sudo systemctl start docker
+                '''
+            }
+        }
+        stage('Deploy on ECR') {
+            steps {
+                sh '''
+                aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin 533266990732.dkr.ecr.us-east-1.amazonaws.com
+                sudo docker build -t backend spring-backend/.
+                sudo docker tag backend:latest 533266990732.dkr.ecr.us-east-1.amazonaws.com/backend:latest
+                sudo docker push 533266990732.dkr.ecr.us-east-1.amazonaws.com/backend:latest
+                '''
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo 'Backend has been successfully deployed to ECR!'
+            }
+        }
+    }
+}

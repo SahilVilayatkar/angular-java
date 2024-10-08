@@ -1,0 +1,40 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    if (fileExists('angular-java')) {
+                        sh 'rm -rf angular-java'
+                    }
+                    git branch: 'develop', credentialsId: 'git-credentials-details', url: 'https://github.com/SahilVilayatkar/angular-java.git'
+                }
+            }
+        }
+        stage('Build') {
+            steps {
+                sh '''
+                cd angular-frontend
+                sudo yum update -y
+                sudo yum install nodejs npm -y
+                sudo npm install -g @angular/cli@14.2.1 
+                npm install
+                ng build
+                '''
+            }
+        }
+        stage('Push to S3') {
+            steps {
+                sh '''
+                aws s3 cp --recursive angular-frontend/dist/angular-frontend/ s3://bucket-jenkins-frontend
+                '''
+            }
+        }
+        stage('Hello World') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+    }
+}

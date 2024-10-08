@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spring-backend
+  template:
+    metadata:
+      labels:
+        app: spring-backend
+    spec:
+      containers:
+        - name: spring-backend
+          image: 533266990732.dkr.ecr.us-east-1.amazonaws.com/backend:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mariadb-service:3306/springbackend"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "admin"  # The same username you used for MariaDB
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "Sahil@123"  # The same password you used for MariaDB
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: spring-backend
+spec:
+  type: LoadBalancer or NodePort
+  selector:
+    app: spring-backend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+
+
